@@ -6,9 +6,10 @@ load_dotenv()
 
 class Config:
     """Base configuration."""
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
+
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 'mysql+pymysql://root:password@localhost/fitright'
+        "DATABASE_URL", "mysql+pymysql://root:password@localhost/fitright"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
@@ -21,7 +22,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
 
 
@@ -30,8 +31,8 @@ class ProductionConfig(Config):
 
 
 config = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+    "default": DevelopmentConfig,
 }

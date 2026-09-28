@@ -11,14 +11,14 @@ migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
-login_manager.login_view = 'auth.login'
-login_manager.login_message_category = 'info'
+login_manager.login_view = "auth.login"
+login_manager.login_message_category = "info"
 
 
 def create_app(config_name=None):
     """Application factory."""
     if config_name is None:
-        config_name = os.environ.get('FLASK_ENV', 'development')
+        config_name = os.environ.get("FLASK_ENV", "development")
 
     app = Flask(__name__)
     app.config.from_object(config[config_name])
@@ -35,18 +35,18 @@ def create_app(config_name=None):
     from app.orders import orders as orders_bp
     from app.admin import admin as admin_bp
 
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(catalog_bp, url_prefix='/')
-    app.register_blueprint(orders_bp, url_prefix='/orders')
-    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(catalog_bp, url_prefix="/")
+    app.register_blueprint(orders_bp, url_prefix="/orders")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     # Error handlers
     @app.errorhandler(403)
     def forbidden(e):
-        return render_template('errors/403.html'), 403
+        return render_template("errors/403.html"), 403
 
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('errors/404.html'), 404
+        return render_template("errors/404.html"), 404
 
     return app

@@ -1,11 +1,12 @@
 """Size recommendation engine with return-feedback adjustment."""
+
 import math
 from app.models import SizeChart, Order, Return
 from app import db
 from sqlalchemy import func
 
 # Ordered size ladder for shift operations
-SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"]
 
 # Threshold: if >30% of size-related returns say too_small or too_large, shift
 SHIFT_THRESHOLD = 0.30
@@ -14,9 +15,7 @@ SHIFT_THRESHOLD = 0.30
 def _euclidean_distance(sc: SizeChart, chest: float, waist: float, hip: float) -> float:
     """Euclidean distance between user measurements and a size chart entry."""
     return math.sqrt(
-        (sc.chest - chest) ** 2 +
-        (sc.waist - waist) ** 2 +
-        (sc.hip - hip) ** 2
+        (sc.chest - chest) ** 2 + (sc.waist - waist) ** 2 + (sc.hip - hip) ** 2
     )
 
 
@@ -31,7 +30,7 @@ def _get_return_bias(product_id: int, raw_size: str) -> int:
         .join(Order, Return.order_id == Order.id)
         .filter(
             Order.product_id == product_id,
-            Return.reason.in_(['too_small', 'too_large'])
+            Return.reason.in_(["too_small", "too_large"]),
         )
         .scalar()
     )
@@ -42,20 +41,14 @@ def _get_return_bias(product_id: int, raw_size: str) -> int:
     too_small_count = (
         db.session.query(func.count(Return.id))
         .join(Order, Return.order_id == Order.id)
-        .filter(
-            Order.product_id == product_id,
-            Return.reason == 'too_small'
-        )
+        .filter(Order.product_id == product_id, Return.reason == "too_small")
         .scalar()
     )
 
     too_large_count = (
         db.session.query(func.count(Return.id))
         .join(Order, Return.order_id == Order.id)
-        .filter(
-            Order.product_id == product_id,
-            Return.reason == 'too_large'
-        )
+        .filter(Order.product_id == product_id, Return.reason == "too_large")
         .scalar()
     )
 
@@ -70,7 +63,7 @@ def _get_return_bias(product_id: int, raw_size: str) -> int:
         return 0
 
     if too_small_count / total_returns > SHIFT_THRESHOLD:
-        return 1   # shift up — customers say this product runs small
+        return 1  # shift up — customers say this product runs small
     if too_large_count / total_returns > SHIFT_THRESHOLD:
         return -1  # shift down — customers say this product runs large
     return 0
@@ -91,19 +84,14 @@ def _confidence_label(distance: float) -> tuple[str, str]:
     Distance thresholds are in cm (3-measurement combined).
     """
     if distance < 5:
-        return 'High', 'success'
+        return "High", "success"
     elif distance < 12:
-        return 'Medium', 'warning'
+        return "Medium", "warning"
     else:
-        return 'Low', 'danger'
+        return "Low", "danger"
 
 
-def recommend_size(
-    product_id: int,
-    chest: float,
-    waist: float,
-    hip: float
-) -> dict:
+def recommend_size(product_id: int, chest: float, waist: float, hip: float) -> dict:
     """
     Recommend a size for a product given user measurements.
 
@@ -119,13 +107,13 @@ def recommend_size(
     charts = SizeChart.query.filter_by(product_id=product_id).all()
     if not charts:
         return {
-            'size': None,
-            'raw_size': None,
-            'adjusted': False,
-            'confidence': 'Unknown',
-            'color': 'secondary',
-            'distance': None,
-            'bias': 0,
+            "size": None,
+            "raw_size": None,
+            "adjusted": False,
+            "confidence": "Unknown",
+            "color": "secondary",
+            "distance": None,
+            "bias": 0,
         }
 
     # Find the closest size by Euclidean distance
@@ -140,11 +128,11 @@ def recommend_size(
     confidence, color = _confidence_label(distance)
 
     return {
-        'size': final_size,
-        'raw_size': raw_size,
-        'adjusted': bias != 0,
-        'confidence': confidence,
-        'color': color,
-        'distance': round(distance, 2),
-        'bias': bias,
+        "size": final_size,
+        "raw_size": raw_size,
+        "adjusted": bias != 0,
+        "confidence": confidence,
+        "color": color,
+        "distance": round(distance, 2),
+        "bias": bias,
     }

@@ -1,4 +1,5 @@
 """Admin blueprint: analytics dashboard with Chart.js visualisations."""
+
 from flask import render_template, abort, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
@@ -13,7 +14,7 @@ def _require_admin():
         abort(403)
 
 
-@admin.route('/')
+@admin.route("/")
 @login_required
 def dashboard():
     """Main admin analytics dashboard."""
@@ -22,16 +23,16 @@ def dashboard():
     # --- Return rate by category ---
     # total orders per category
     total_by_cat = (
-        db.session.query(Product.category, func.count(Order.id).label('total'))
+        db.session.query(Product.category, func.count(Order.id).label("total"))
         .join(Order, Order.product_id == Product.id)
         .group_by(Product.category)
         .all()
     )
     # returned orders per category
     returned_by_cat = (
-        db.session.query(Product.category, func.count(Order.id).label('returned'))
+        db.session.query(Product.category, func.count(Order.id).label("returned"))
         .join(Order, Order.product_id == Product.id)
-        .filter(Order.status == 'returned')
+        .filter(Order.status == "returned")
         .group_by(Product.category)
         .all()
     )
@@ -40,28 +41,24 @@ def dashboard():
 
     categories = sorted(total_map.keys())
     return_rates = [
-        round(returned_map.get(c, 0) / total_map[c] * 100, 1)
-        for c in categories
+        round(returned_map.get(c, 0) / total_map[c] * 100, 1) for c in categories
     ]
 
     # --- Top return reasons ---
     reason_counts = (
-        db.session.query(Return.reason, func.count(Return.id).label('cnt'))
+        db.session.query(Return.reason, func.count(Return.id).label("cnt"))
         .group_by(Return.reason)
         .all()
     )
-    reasons = [r.reason.replace('_', ' ').title() for r in reason_counts]
+    reasons = [r.reason.replace("_", " ").title() for r in reason_counts]
     reason_values = [r.cnt for r in reason_counts]
 
     # --- Products with highest size-related returns ---
     size_returns = (
-        db.session.query(
-            Product.name,
-            func.count(Return.id).label('size_returns')
-        )
+        db.session.query(Product.name, func.count(Return.id).label("size_returns"))
         .join(Order, Order.product_id == Product.id)
         .join(Return, Return.order_id == Order.id)
-        .filter(Return.reason.in_(['too_small', 'too_large']))
+        .filter(Return.reason.in_(["too_small", "too_large"]))
         .group_by(Product.id, Product.name)
         .order_by(func.count(Return.id).desc())
         .limit(10)
@@ -73,12 +70,14 @@ def dashboard():
     # --- Summary KPIs ---
     total_orders = Order.query.count()
     total_returns = Return.query.count()
-    overall_return_rate = round(total_returns / total_orders * 100, 1) if total_orders else 0
+    overall_return_rate = (
+        round(total_returns / total_orders * 100, 1) if total_orders else 0
+    )
     total_products = Product.query.count()
 
     return render_template(
-        'admin/dashboard.html',
-        title='Admin Dashboard',
+        "admin/dashboard.html",
+        title="Admin Dashboard",
         # KPIs
         total_orders=total_orders,
         total_returns=total_returns,

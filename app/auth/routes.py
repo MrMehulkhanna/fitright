@@ -6,51 +6,47 @@ from app.auth import auth
 from app.auth.forms import RegistrationForm, LoginForm
 
 
-@auth.route('/register', methods=['GET', 'POST'])
+@auth.route("/register", methods=["GET", "POST"])
 def register():
     """Register a new customer account."""
     if current_user.is_authenticated:
-        return redirect(url_for('catalog.index'))
+        return redirect(url_for("catalog.index"))
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            role='customer'
-        )
+        user = User(username=form.username.data, email=form.email.data, role="customer")
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
+        flash("Registration successful! Please log in.", "success")
+        return redirect(url_for("auth.login"))
 
-    return render_template('auth/register.html', form=form, title='Register')
+    return render_template("auth/register.html", form=form, title="Register")
 
 
-@auth.route('/login', methods=['GET', 'POST'])
+@auth.route("/login", methods=["GET", "POST"])
 def login():
     """Authenticate user and start session."""
     if current_user.is_authenticated:
-        return redirect(url_for('catalog.index'))
+        return redirect(url_for("catalog.index"))
 
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            next_page = request.args.get('next')
-            flash(f'Welcome back, {user.username}!', 'success')
-            return redirect(next_page or url_for('catalog.index'))
-        flash('Invalid email or password.', 'danger')
+            next_page = request.args.get("next")
+            flash(f"Welcome back, {user.username}!", "success")
+            return redirect(next_page or url_for("catalog.index"))
+        flash("Invalid email or password.", "danger")
 
-    return render_template('auth/login.html', form=form, title='Login')
+    return render_template("auth/login.html", form=form, title="Login")
 
 
-@auth.route('/logout')
+@auth.route("/logout")
 @login_required
 def logout():
     """End user session."""
     logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('catalog.index'))
+    flash("You have been logged out.", "info")
+    return redirect(url_for("catalog.index"))
