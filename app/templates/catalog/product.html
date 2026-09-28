@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - FitRight{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <!-- Product Image -->
+    <div class="col-md-5">
+        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded shadow">
+    </div>
+
+    <!-- Product Info -->
+    <div class="col-md-7">
+        <span class="badge bg-secondary mb-2">{{ product.category | title }}</span>
+        <h2 class="fw-bold">{{ product.name }}</h2>
+        <p class="text-muted">{{ product.brand }}</p>
+        <h3 class="text-dark">${{ "%.2f" | format(product.price) }}</h3>
+        <p class="mt-2">{{ product.description }}</p>
+
+        <!-- Size Recommendation Widget -->
+        {% if current_user.is_authenticated %}
+            {% if recommendation and recommendation.size %}
+            <div class="alert alert-light border mt-3">
+                <h5><i class="bi bi-rulers"></i> Your Size Recommendation</h5>
+                <p class="mb-1">
+                    Recommended Size:
+                    <span class="badge bg-dark fs-5">{{ recommendation.size }}</span>
+                    <span class="badge bg-{{ recommendation.color }} badge-confidence ms-1">
+                        {{ recommendation.confidence }} Confidence
+                    </span>
+                </p>
+                {% if recommendation.adjusted %}
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    Adjusted from {{ recommendation.raw_size }} based on return feedback
+                    ({{ 'runs small — sized up' if recommendation.bias == 1 else 'runs large — sized down' }}).
+                </small>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle"></i>
+                <a href="{{ url_for('catalog.measurements') }}">Enter your measurements</a> to get a size recommendation.
+            </div>
+            {% endif %}
+        {% else %}
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle"></i>
+            <a href="{{ url_for('auth.login') }}">Log in</a> and add your measurements to get a personalized size recommendation.
+        </div>
+        {% endif %}
+
+        <!-- Order Form -->
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('orders.place_order') }}" class="mt-3">
+            {{ order_form.hidden_tag() if order_form else '' }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Select Size</label>
+                <select name="size" class="form-select" style="max-width:150px;">
+                    {% for sc in size_charts %}
+                    <option value="{{ sc.size }}" {% if recommendation and sc.size == recommendation.size %}selected{% endif %}>{{ sc.size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-dark btn-lg"><i class="bi bi-cart-plus"></i> Place Order</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Size Chart Table -->
+<div class="mt-5">
+    <h5 class="fw-bold">Size Chart</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Size</th>
+                    <th>Chest (cm)</th>
+                    <th>Waist (cm)</th>
+                    <th>Hip (cm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sc in size_charts %}
+                <tr {% if recommendation and sc.size == recommendation.size %}class="table-success fw-bold"{% endif %}>
+                    <td>{{ sc.size }}</td>
+                    <td>{{ sc.chest }}</td>
+                    <td>{{ sc.waist }}</td>
+                    <td>{{ sc.hip }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

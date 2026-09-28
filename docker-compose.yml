@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: fitright
+      MYSQL_USER: fitright
+      MYSQL_PASSWORD: fitright_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: run.py
+      FLASK_ENV: production
+      SECRET_KEY: change-me-in-production
+      DATABASE_URL: mysql+pymysql://fitright:fitright_pass@db:3306/fitright
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "flask db upgrade &&
+             python seeds/seed.py &&
+             gunicorn --bind 0.0.0.0:5000 --workers 4 run:app"
+
+volumes:
+  mysql_data:

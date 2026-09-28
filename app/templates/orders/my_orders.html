@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}My Orders - FitRight{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bag"></i> My Orders</h2>
+
+{% if orders %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Size</th>
+                <th>Status</th>
+                <th>Ordered</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>
+                    <a href="{{ url_for('catalog.product_detail', product_id=order.product_id) }}" class="text-decoration-none fw-semibold">
+                        {{ order.product.name }}
+                    </a>
+                    <br><small class="text-muted">${{ "%.2f" | format(order.product.price) }}</small>
+                </td>
+                <td><span class="badge bg-secondary">{{ order.size }}</span></td>
+                <td>
+                    {% set status_colors = {'pending': 'warning', 'shipped': 'info', 'delivered': 'success', 'returned': 'danger'} %}
+                    <span class="badge bg-{{ status_colors.get(order.status, 'secondary') }}">{{ order.status | title }}</span>
+                </td>
+                <td><small>{{ order.created_at.strftime('%b %d, %Y') }}</small></td>
+                <td>
+                    {% if order.status in ('delivered', 'shipped') and not order.returns %}
+                    <a href="{{ url_for('orders.return_order', order_id=order.id) }}" class="btn btn-sm btn-outline-danger">Return</a>
+                    {% elif order.returns %}
+                    <span class="text-muted small">Returned ({{ order.returns.reason | replace('_', ' ') | title }})</span>
+                    {% else %}
+                    <span class="text-muted small">&mdash;</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-bag-x" style="font-size:3rem;color:#adb5bd;"></i>
+    <p class="mt-3 text-muted">You haven't placed any orders yet.</p>
+    <a href="{{ url_for('catalog.index') }}" class="btn btn-dark">Start Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

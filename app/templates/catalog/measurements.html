@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}My Measurements - FitRight{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title mb-1"><i class="bi bi-person-ruler"></i> My Measurements</h2>
+                <p class="text-muted mb-4">Enter your body measurements in centimetres for accurate size recommendations.</p>
+
+                <form method="POST" action="{{ url_for('catalog.measurements') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.chest.label(class='form-label fw-semibold') }}
+                        {{ form.chest(class='form-control' + (' is-invalid' if form.chest.errors else ''), placeholder='e.g. 94') }}
+                        {% for e in form.chest.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        <div class="form-text">Measure around the fullest part of your chest.</div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.waist.label(class='form-label fw-semibold') }}
+                        {{ form.waist(class='form-control' + (' is-invalid' if form.waist.errors else ''), placeholder='e.g. 74') }}
+                        {% for e in form.waist.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        <div class="form-text">Measure around your natural waistline.</div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.hip.label(class='form-label fw-semibold') }}
+                        {{ form.hip(class='form-control' + (' is-invalid' if form.hip.errors else ''), placeholder='e.g. 100') }}
+                        {% for e in form.hip.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        <div class="form-text">Measure around the fullest part of your hips.</div>
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class='btn btn-dark btn-lg') }}
+                    </div>
+                </form>
+
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="fw-bold">How to measure</h6>
+                    <ul class="small text-muted mb-0">
+                        <li>Use a soft tape measure</li>
+                        <li>Keep the tape parallel to the floor</li>
+                        <li>Don't pull too tight — one finger of slack is ideal</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
